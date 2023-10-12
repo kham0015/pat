@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Info</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f4e8; /* Old book page color */
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #eae3cb; /* Old book page color */
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .input-box {
+            margin-bottom: 10px;
+        }
+        .input-box label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4a5568;
+        }
+    
+        .buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap; /* Allows the buttons to move to the next line if there's not enough space */
+    justify-content: space-between; /* Distributes space between items */
+    align-items: center; /* Aligns items on the cross-axis */
+}
+
+
+        
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            background-color: #bfa77d; /* Old book page color */
+            color: #ffffff;
+            margin: 5px;
+        }
+        button.small {
+            padding: 5px 8px;
+        }
+        button:hover {
+            background-color: #a8946c; /* Darker shade of old book page color */
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 10px;
+        }
+        li {
+            padding: 8px;
+            border-bottom: 1px solid #dcd6c0; /* Old book page color */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        li:hover {
+            background-color: #ebe5d2; /* Lighter shade of old book page color */
+        }
+        .content-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .info-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .patient-info {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.8em;
+            flex-direction: row;
+        }
+        .centered-title {
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        #saveButton {
+            position: static;
+        }
+        #homeButton {
+            position: static;
+        }
+        #homeButton.centered {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #infoText {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            height: 150px;
+        }
+        #addButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        #searchInput {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        #savedPatientsTitle {
+    margin-top: 60px;
+    margin-bottom: 5px;
+}
+
+#buttonContainer {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    display: flex;
+    flex-direction: column; /* Stack the buttons vertically */
+    gap: 30px; /* Add some space between the buttons */
+}
+
+#removeButton {
+    margin-top: 50px;
+}
+
+
+    </style>
+</head>
+<body>
+    <div class="container content-center">
+
+        <div id="buttonContainer">
+        <button id="addButton" onclick="addPatient()">Add</button>
+<button id="removeButton" onclick="removePatient()" style="display: none;">Remove</button>
+</div>
+
+        <input type="text" id="searchInput" placeholder="Search..." onkeyup="filterPatients()">
+        <h2 id="savedPatientsTitle">Saved Patients</h2>
+        <ul id="patientList"></ul>
+        <div id="patientDetails" style="display: none;">
+            <div class="info-header">
+                <div class="patient-info">
+                    <span id="displayPatientName" onclick="backToPatientPage()"></span>
+                    <span id="displayDiagnosis"></span>
+                </div>
+            </div>
+            <div class="centered-title">
+                <button id="saveButton" class="small" onclick="saveInfo()" style="display: none;">Save</button>
+                <h3 id="infoLabel" style="display: none;"></h3> <!-- Initially hidden -->
+                <button id="homeButton" onclick="goHome()" style="display: none;">Home</button>
+            </div>
+            <textarea id="infoText" rows="5" placeholder="Enter details here..." style="width: 100%; display: none;"></textarea> <!-- Initially hidden -->
+            <div class="buttons">
+                <button onclick="showInfo('symptoms')">Symptoms</button>
+                <button onclick="showInfo('labs')">Labs</button>
+                <button onclick="showInfo('imaging')">Imaging</button>
+                <button onclick="showInfo('treatment')">Treatment</button>
+               
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addPatient() {
+            const patientName = prompt("Enter patient name:");
+            const diagnosis = prompt("Enter diagnosis:");
+            if (patientName && diagnosis) {
+                localStorage.setItem(patientName + '-diagnosis', diagnosis);
+                updatePatientList();
+            }
+        }
+
+        function filterPatients() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const patients = document.querySelectorAll('#patientList li');
+            patients.forEach(patient => {
+                if (patient.textContent.toLowerCase().includes(searchTerm)) {
+                    patient.style.display = 'block';
+                } else {
+                    patient.style.display = 'none';
+                }
+            });
+        }
+
+        function showInfo(type) {
+            currentInfoType = type;
+            document.getElementById('infoLabel').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            document.getElementById('infoLabel').style.display = 'block';
+            document.getElementById('infoText').style.display = 'block';
+            document.getElementById('homeButton').classList.remove('centered'); // Remove centered class
+
+            const savedInfo = localStorage.getItem(currentPatient + '-' + type);
+            document.getElementById('infoText').value = savedInfo || '';
+            document.getElementById('patientList').style.display = 'none';
+            document.getElementById('homeButton').style.display = 'block';
+            document.getElementById('saveButton').style.display = 'block';
+        }
+
+        function saveInfo() {
+            if (!currentPatient) {
+                alert('Please select a patient or create a new one.');
+                return;
+            }
+
+            const infoText = document.getElementById('infoText').value;
+            localStorage.setItem(currentPatient + '-' + currentInfoType, infoText);
+        }
+
+        function updatePatientList() {
+            const patientList = document.getElementById('patientList');
+            patientList.innerHTML = ''; // Clear the current list
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.endsWith('-diagnosis')) {
+                    const patientName = key.replace('-diagnosis', '');
+                    const diagnosis = localStorage.getItem(key);
+
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${patientName} - ${diagnosis}`;
+                    listItem.addEventListener('click', function() {
+                        loadPatientDetails(patientName);
+                    });
+
+                    patientList.appendChild(listItem);
+                }
+            }
+        }
+
+        function loadPatientDetails(patientName) {
+            currentPatient = patientName;
+            const diagnosis = localStorage.getItem(patientName + '-diagnosis');
+            document.getElementById('displayPatientName').textContent = patientName;
+            document.getElementById('displayDiagnosis').textContent = diagnosis;
+            document.getElementById('infoText').value = '';
+            document.getElementById('patientDetails').style.display = 'block';
+            document.getElementById('patientList').style.display = 'none';
+            document.getElementById('homeButton').style.display = 'block';
+            document.getElementById('homeButton').classList.add('centered'); // Add centered class
+            document.getElementById('savedPatientsTitle').style.display = 'none';
+            document.getElementById('addButton').style.display = 'none';
+            document.getElementById('searchInput').style.display = 'none';
+            document.getElementById('removeButton').style.display = 'block';
+        }
+
+        function goHome() {
+            document.getElementById('patientDetails').style.display = 'none';
+            document.getElementById('homeButton').style.display = 'none';
+            document.getElementById('saveButton').style.display = 'none';
+            document.getElementById('infoLabel').style.display = 'none';
+            document.getElementById('infoText').style.display = 'none';
+            document.getElementById('patientList').style.display = 'block';
+            document.getElementById('savedPatientsTitle').style.display = 'block';
+            document.getElementById('addButton').style.display = 'block';
+            document.getElementById('searchInput').style.display = 'block';
+            document.getElementById('removeButton').style.display = 'none';
+            
+        }
+
+        function backToPatientPage() {
+            document.getElementById('infoText').style.display = 'none';
+            document.getElementById('infoLabel').style.display = 'none';
+            document.getElementById('patientDetails').style.display = 'block';
+            document.getElementById('homeButton').style.display = 'block';
+            document.getElementById('homeButton').classList.add('centered'); // Add centered class
+            document.getElementById('saveButton').style.display = 'none';
+        }
+
+        function removePatient() {
+    if (confirm("Are you sure you want to remove " + currentPatient + "?")) {
+        // Remove patient and related info from localStorage
+        localStorage.removeItem(currentPatient + '-diagnosis');
+        localStorage.removeItem(currentPatient + '-symptoms');
+        localStorage.removeItem(currentPatient + '-labs');
+        localStorage.removeItem(currentPatient + '-imaging');
+        localStorage.removeItem(currentPatient + '-treatment');
+        
+        // Update the UI
+        updatePatientList();
+        goHome();
+    }
+}
+
+
+
+
+        // Initial load
+        updatePatientList();
+    </script>
+</body>
+</html>
